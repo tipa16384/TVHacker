@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://v1oeu8d5if7k"]
+
+[ext_resource type="Script" uid="uid://d13oc77aqn6t1" path="res://main.gd" id="1_glv2v"]
+
+[sub_resource type="AudioStreamMicrophone" id="AudioStreamMicrophone_glv2v"]
+
+[node name="MainControl" type="Control" unique_id=1848148317]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_glv2v")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=543157326]
+layout_mode = 0
+offset_right = 512.0
+offset_bottom = 488.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1176344474]
+layout_mode = 2
+
+[node name="PhraseLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1040168129]
+layout_mode = 2
+text = "ISOLATE THE CPU"
+
+[node name="KPMLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1698320384]
+layout_mode = 2
+text = "KPM:"
+
+[node name="KPMProgressBar" type="ProgressBar" parent="MarginContainer/VBoxContainer" unique_id=1552304394]
+layout_mode = 2
+
+[node name="VoiceLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1834989245]
+layout_mode = 2
+text = "Voice"
+
+[node name="VoiceProgressBar" type="ProgressBar" parent="MarginContainer/VBoxContainer" unique_id=897797863]
+layout_mode = 2
+
+[node name="ScoreLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1091432175]
+layout_mode = 2
+text = "SCORE: 0"
+
+[node name="TimerLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=2093305687]
+layout_mode = 2
+text = "Timer"
+
+[node name="MicPlayer" type="AudioStreamPlayer" parent="." unique_id=1985524592]
+stream = SubResource("AudioStreamMicrophone_glv2v")
+autoplay = true
+bus = &"Mic"

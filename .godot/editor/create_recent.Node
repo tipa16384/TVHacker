@@ -1,0 +1,11 @@
+AudioStreamPlayer
+ColorRect
+Control
+Label
+VBoxContainer
+CenterContainer
+PanelContainer
+Panel
+HBoxContainer
+ProgressBar
+MarginContainer

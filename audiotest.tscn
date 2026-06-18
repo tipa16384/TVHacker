@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://cklseppu6q787"]
+
+[ext_resource type="Script" uid="uid://6jgdl5bh52qk" path="res://audiotest.gd" id="1_yr16s"]
+
+[sub_resource type="AudioStreamMicrophone" id="AudioStreamMicrophone_e8ydx"]
+
+[node name="Control" type="Control" unique_id=2006554911]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yr16s")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1834785035]
+stream = SubResource("AudioStreamMicrophone_e8ydx")
+autoplay = true
