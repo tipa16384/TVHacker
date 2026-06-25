@@ -8,6 +8,8 @@
 [ext_resource type="Script" uid="uid://c8ekbfpmgohgr" path="res://trace_vector_panel.gd" id="5_lgr22"]
 [ext_resource type="Script" uid="uid://ojslisqmp7eo" path="res://kpm_instrument.gd" id="6_3dxm6"]
 [ext_resource type="Script" uid="uid://bgda8xxnf0hf6" path="res://interrupt_panel.gd" id="7_trn2v"]
+[ext_resource type="Script" uid="uid://wodlbiy4fy4y" path="res://web_cam.gd" id="8_03owx"]
+[ext_resource type="Shader" uid="uid://jmgsa4rk5ubi" path="res://green_screen.gdshader" id="8_wkp8b"]
 
 [sub_resource type="Theme" id="Theme_lgr22"]
 default_font = ExtResource("1_3dxm6")
@@ -31,6 +33,9 @@ shader = ExtResource("5_fos0i")
 shader_parameter/dark_text = Vector3(0, 0.0625, 0)
 shader_parameter/light_text = Vector3(0, 1, 0.333)
 shader_parameter/threshold = 0.45
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wkp8b"]
+shader = ExtResource("8_wkp8b")
 
 [sub_resource type="AudioStreamMicrophone" id="AudioStreamMicrophone_glv2v"]
 
@@ -116,6 +121,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("5_3dxm6")
 
+[node name="TimerSoundPlayer" type="AudioStreamPlayer" parent="MainMargin/RootVBox/TopRow/TimerDialRoot/TimerDial" unique_id=1301593155]
+bus = &"Timer"
+
 [node name="TimerLabel" type="Label" parent="MainMargin/RootVBox/TopRow/TimerDialRoot" unique_id=796627973]
 material = SubResource("ShaderMaterial_fos0i")
 custom_minimum_size = Vector2(120, 120)
@@ -140,6 +148,10 @@ custom_minimum_size = Vector2(288, 400)
 layout_mode = 2
 size_flags_stretch_ratio = 3.0
 script = ExtResource("5_lgr22")
+
+[node name="TraceSoundPlayer" type="AudioStreamPlayer" parent="MainMargin/RootVBox/MiddleRow/TraceVectorPanel" unique_id=175193444]
+volume_db = -20.571
+bus = &"Trace"
 
 [node name="VoicePanelRoot" type="ColorRect" parent="MainMargin/RootVBox/MiddleRow" unique_id=1363170335]
 custom_minimum_size = Vector2(575, 400)
@@ -177,6 +189,7 @@ size_flags_stretch_ratio = 6.0
 script = ExtResource("3_r0du0")
 
 [node name="InterruptPanel" type="Control" parent="MainMargin/RootVBox/MiddleRow" unique_id=780962567]
+visible = false
 custom_minimum_size = Vector2(279, 400)
 layout_mode = 2
 size_flags_stretch_ratio = 2.0
@@ -185,6 +198,16 @@ script = ExtResource("7_trn2v")
 [node name="PongPlayer" type="AudioStreamPlayer" parent="MainMargin/RootVBox/MiddleRow/InterruptPanel" unique_id=842617124]
 volume_db = -26.286
 bus = &"BeepBoop"
+
+[node name="WebCam" type="TextureRect" parent="MainMargin/RootVBox/MiddleRow" unique_id=1166447379]
+material = SubResource("ShaderMaterial_wkp8b")
+clip_contents = true
+custom_minimum_size = Vector2(279, 400)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+script = ExtResource("8_03owx")
 
 [node name="KPMInstrument" type="Control" parent="MainMargin/RootVBox" unique_id=1563438796]
 custom_minimum_size = Vector2(700, 120)
@@ -196,6 +219,7 @@ script = ExtResource("6_3dxm6")
 stream = SubResource("AudioStreamMicrophone_glv2v")
 autoplay = true
 bus = &"Mic"
+playback_type = 1
 
 [node name="MissionResultOverlay" type="ColorRect" parent="." unique_id=1170803419]
 visible = false
@@ -229,5 +253,8 @@ visible = false
 layout_mode = 2
 text = "Press 'X' to Continue"
 horizontal_alignment = 1
+
+[node name="GameMusic" type="AudioStreamPlayer" parent="." unique_id=1597841773]
+bus = &"GameOver"
 
 [connection signal="trace_cleared" from="MainMargin/RootVBox/MiddleRow/TraceVectorPanel" to="." method="_on_trace_vector_panel_trace_cleared"]

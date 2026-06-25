@@ -1,13 +1,39 @@
 extends Control
 
+@onready var timer_player : AudioStreamPlayer = $TimerSoundPlayer
+
+var alarm_sound = preload("res://audio/lowtime.wav")
+
 var time_left := 60.0
 var max_time := 60.0
 var critical_time := 5.0
+var sound_playing := false
 
 var bg_color := Color(0.0, 0.08, 0.0)
 var green := Color(0.35, 1.0, 0.35)
 var red := Color(1.0, 0.05, 0.02)
 var border := Color(0.65, 1.0, 0.65)
+
+func play_sfx(stream: AudioStream) -> void:
+	print("playing alarm sound")
+	timer_player.stream = stream
+	timer_player.play()
+	sound_playing = true
+
+func stop_all_sounds() -> void:
+	print("stopping all timer sounds")
+	timer_player.stop()
+	sound_playing = false
+
+func fix_sound(should_be_playing: bool) -> void:
+	if (sound_playing and should_be_playing) or (not sound_playing and not should_be_playing):
+		return
+	
+	# turn off playing sound
+	if sound_playing:
+		stop_all_sounds()
+	else:
+		play_sfx(alarm_sound)
 
 func _draw_filled_arc(
 	center: Vector2,
@@ -36,35 +62,6 @@ func set_time(value: float, maximum: float, critical: float = 5.0) -> void:
 	critical_time = critical
 	queue_redraw()
 
-func _zdraw() -> void:
-	var center := size / 2.0
-	var radius : float = min(size.x, size.y) * 0.45
-
-	# Background circle.
-	draw_circle(center, radius, bg_color)
-
-	var remaining_ratio : float = clamp(time_left / max_time, 0.0, 1.0)
-
-	# Full timer arc starts at 12 o'clock and drains clockwise.
-	var start_angle := -PI / 2.0
-	var end_angle := start_angle + TAU * remaining_ratio
-
-	var fill_color := green
-	if time_left <= critical_time:
-		fill_color = red
-
-	if remaining_ratio > 0.0:
-		_draw_filled_arc(center, radius, start_angle, end_angle, fill_color)
-
-	# Optional critical zone outline/marker.
-	var critical_ratio : float = clamp(critical_time / max_time, 0.0, 1.0)
-	var critical_angle := start_angle + TAU * critical_ratio
-	var marker_pos := center + Vector2(cos(critical_angle), sin(critical_angle)) * radius
-	draw_line(center, marker_pos, red, 2.0)
-
-	# Border.
-	draw_arc(center, radius, 0.0, TAU, 96, border, 2.0)
-
 func _draw() -> void:
 	var center := size / 2.0
 	var radius : float = min(size.x, size.y) * 0.45
@@ -76,6 +73,7 @@ func _draw() -> void:
 	var start_angle := -PI / 2.0
 	var end_angle := start_angle + TAU * remaining_ratio
 	var fill_color := red if time_left <= critical_time else green
+	fix_sound(time_left <= critical_time)
 
 	if remaining_ratio > 0.0:
 		_draw_filled_arc(center, radius, start_angle, end_angle, fill_color)

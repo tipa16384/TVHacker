@@ -2,11 +2,30 @@ extends Control
 
 signal trace_cleared
 
+@onready var trace_player : AudioStreamPlayer = $TraceSoundPlayer
+
+var trace_key = preload("res://audio/trace_key.wav")
+var trace_success = preload("res://audio/trace_success.wav")
+var trace_start = preload("res://audio/tracestart.wav")
+
 var crt_dark := Color("#001000")
 var crt_dim := Color("#006622")
 var crt_green := Color("#00ff55")
 var crt_white := Color("#e8ffe8")
 var crt_red := Color("#ff2020")
+
+var super_important_and_very_real_code := """10 DIM B(4),TD(4)
+20 DATA 52, 426, 94, 13
+30 FOR I=1 TO 4
+40 READ B:B(I)=B:READ T:
+50 NEXT I
+60 PART1=1
+70 FOR I=1 TO 4
+80 B=B(I):TD=TD(I)
+100 GOSUB 1000
+110 PART1=PART1*SOLVE
+120 NEXT I
+130 PRINT "PART 1: ";PA""".strip_edges().split("\n")
 
 var nodes := [
 	{"label": "SEA"},
@@ -32,14 +51,54 @@ var links := [
 	[3, 8]
 ]
 
+var index_to_line := [
+	0, 1,
+	2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4,
+	5,
+	6, 7, 8, 9, 10,
+	6, 7, 8, 9, 10,
+	6, 7, 8, 9, 10,
+	6, 7, 8, 9, 10,
+	11
+]
+
 var selected_index := 0
 var trace_index := -1
 var trace_active := false
 var pulse_time := 0.0
 
+var statement_index := 0
+var active_basic_line := 0
+var first_visible_basic_line := 0
+var visible_basic_lines := 14
+var basic_execution_timer := 0.0
+var basic_execution_interval := 0.18
+
+func update_basic_execution(delta: float) -> void:
+	basic_execution_timer += delta
+
+	if basic_execution_timer < basic_execution_interval:
+		return
+
+	basic_execution_timer = 0.0
+	statement_index += 1
+
+	if statement_index >= index_to_line.size():
+		statement_index = 0
+		first_visible_basic_line = 0
+	
+	active_basic_line = index_to_line[statement_index]
+
+		
 func _ready() -> void:
 	set_process(true)
 	set_process_input(true)
+	statement_index = 0
+	active_basic_line = 0
+
+func play_sfx(stream: AudioStream) -> void:
+	trace_player.stream = stream
+	trace_player.play()
 
 func activate_trace() -> void:
 	trace_active = true
@@ -48,6 +107,7 @@ func activate_trace() -> void:
 	if trace_index == 0:
 		selected_index = 1
 	pulse_time = 0.0
+	play_sfx(trace_start)
 	queue_redraw()
 
 func clear_trace() -> void:
@@ -85,6 +145,78 @@ func get_node_positions() -> Array[Vector2]:
 
 	return result
 
+func draw_super_real_code() -> void:
+	var font := get_theme_default_font()
+	var font_size := get_theme_default_font_size()
+	var line_h := font_size + 5
+
+	draw_rect(Rect2(Vector2.ZERO, size), crt_dark)
+	draw_rect(Rect2(Vector2.ZERO, size), crt_green, false, 2.0)
+
+	draw_string(
+		font,
+		Vector2(16, 26),
+		"BASIC TRACE MONITOR",
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		font_size,
+		crt_green
+	)
+
+	draw_string(
+		font,
+		Vector2(16, 46),
+		"PROGRAM EXECUTION",
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		font_size,
+		crt_dim
+	)
+
+	var listing_top := 72.0
+
+	for row in range(visible_basic_lines):
+		var i := first_visible_basic_line + row
+
+		if i >= super_important_and_very_real_code.size():
+			break
+
+		var y := listing_top + row * line_h
+		var is_active := i == active_basic_line
+
+		if is_active:
+			draw_rect(
+				Rect2(
+					Vector2(8, y - font_size),
+					Vector2(size.x - 16, line_h)
+				),
+				crt_green
+			)
+
+		draw_string(
+			font,
+			Vector2(14, y),
+			super_important_and_very_real_code[i],
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			font_size,
+			Color("#001000") if is_active else crt_green
+		)
+
+	var status := "READY."
+	if super_important_and_very_real_code.size() > 0:
+		status = "EXEC %03d/%03d" % [active_basic_line + 1, super_important_and_very_real_code.size()]
+
+	draw_string(
+		font,
+		Vector2(16, size.y - 12),
+		status,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		font_size,
+		crt_dim
+	)
+	
 func draw_selector(pos: Vector2) -> void:
 	var left := pos.x - 16.0
 	var right := pos.x + 16.0
@@ -106,20 +238,28 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_UP:
 			selected_index = max(0, selected_index - 1)
+			play_sfx(trace_key)
 			queue_redraw()
 
 		elif event.keycode == KEY_DOWN:
 			selected_index = min(nodes.size() - 1, selected_index + 1)
+			play_sfx(trace_key)
 			queue_redraw()
 
 		if selected_index == trace_index:
+			play_sfx(trace_success)
 			clear_trace()
 
 func _process(delta: float) -> void:
 	pulse_time += delta
 	queue_redraw()
+	update_basic_execution(delta)
 
 func _draw() -> void:
+	if not GameState.current_mission.trace_enabled:
+		draw_super_real_code()
+		return
+		
 	var rect := Rect2(Vector2.ZERO, size)
 
 	draw_rect(rect, crt_dark)

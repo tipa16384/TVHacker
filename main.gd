@@ -6,12 +6,19 @@ extends Control
 @onready var hack_label: Label = $MainMargin/RootVBox/TopRow/HackProgressRoot/HackProgressLabel
 @onready var timer_dial = $MainMargin/RootVBox/TopRow/TimerDialRoot/TimerDial
 @onready var timer_label = $MainMargin/RootVBox/TopRow/TimerDialRoot/TimerLabel
+@onready var voice_label = $MainMargin/RootVBox/MiddleRow/VoicePanelRoot/VoiceVBox/VoicePanelTitleLabel
 @onready var kpm_instrument = $MainMargin/RootVBox/KPMInstrument
 @onready var mission_overlay: ColorRect = $MissionResultOverlay
 @onready var result_label: Label = $MissionResultOverlay/CenterContainer/VBoxContainer/ResultLabel
 @onready var continue_label: Label = $MissionResultOverlay/CenterContainer/VBoxContainer/ContinueLabel
 @onready var trace_panel = $MainMargin/RootVBox/MiddleRow/TraceVectorPanel
 @onready var interrupt_panel = $MainMargin/RootVBox/MiddleRow/InterruptPanel
+@onready var music_player : AudioStreamPlayer = $GameMusic
+
+var mission_failed = preload("res://audio/mission_failed.wav")
+var mission_success = preload("res://audio/mission_success.wav")
+var tick_sound = preload("res://audio/tick.wav")
+var modem_sound = preload("res://audio/modem.mp3")
 
 var mission_finished := false
 var success := false
@@ -19,6 +26,7 @@ var result_overlay_active := false
 var result_accept_input := false
 var result_delay := 5.0
 var result_elapsed := 0.0
+var non_speech_phrase_length := 10
 
 var trace_clear := true
 
@@ -54,6 +62,8 @@ var max_time := 60.0
 
 var ignored_keys := [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN]
 var start_time := 0.0
+var tick_time : int = 0
+var modem_sound_played := false
 
 var verbs: Array = [
 	["isolate", "i-so-late", 3],
@@ -91,9 +101,18 @@ var adjectives: Array = [
 	["syntax", "syn-tax", 2]
 ]
 
+func speech() -> bool:
+	return GameState.current_mission.enable_speech
+
+func play_sfx(stream: AudioStream) -> void:
+	music_player.stream = stream
+	music_player.play()
+
 func finish_mission(was_successful: bool) -> void:
 	mission_finished = true
 	success = was_successful
+	
+	play_sfx(mission_success if success else mission_failed)
 
 	result_overlay_active = true
 	result_accept_input = false
@@ -133,7 +152,11 @@ func set_hack_progress(value: float) -> void:
 	else:
 		hack_label.text = "%.1f%% HACKED" % hack_progress
 	
-	if trace_clear and ((old_hack_progress < 25.0 and hack_progress >= 25.0) or(old_hack_progress < 50.0 and hack_progress >= 50.0) or (old_hack_progress < 75.0 and hack_progress >= 75.0)):
+	if trace_clear \
+		and GameState.current_mission.trace_enabled \
+		and ((old_hack_progress < 25.0 and hack_progress >= 25.0) \
+			or (old_hack_progress < 50.0 and hack_progress >= 50.0) \
+			or (old_hack_progress < 75.0 and hack_progress >= 75.0)):
 		trace_panel.activate_trace()
 		trace_clear = false
 	
@@ -234,21 +257,23 @@ func make_phrase(min_syllables: int, max_syllables: int) -> Array:
 func update_voice(delta: float, normalized: float) -> void:
 	cur_update += delta
 	
-	if not phrase.is_empty() and (cur_update - last_update > 2) and (pulse_count > 0):
+	if speech() and not phrase.is_empty() and (cur_update - last_update > 2) and (pulse_count > 0):
 		pulse_count = 1000
 		
 	pulse_cooldown = max(0.0, pulse_cooldown - delta)
 
 	var speaking := normalized > voice_threshold
 
-	if speaking and not was_speaking and pulse_cooldown <= 0.0:
+	if speech() and speaking and not was_speaking and pulse_cooldown <= 0.0:
 		pulse_count += 1
 		pulse_cooldown = 0.2
 		last_update = cur_update
 
 	was_speaking = speaking
+	var phrase_len : int = phrase[2] if speech() and not phrase.is_empty() \
+									else non_speech_phrase_length
 	
-	if not phrase.is_empty() and pulse_count >= phrase[2]:
+	if (not speech() and pulse_count >= phrase_len) or (not phrase.is_empty() and pulse_count >= phrase_len):
 		var target_low := target_kpm - target_gap/2.0
 		var target_high := target_kpm + target_gap/2.0
 		var divider := 3.0
@@ -257,7 +282,8 @@ func update_voice(delta: float, normalized: float) -> void:
 			divider = 1.0
 		
 		if trace_clear:
-			score += phrase[2] * (1.0 - abs(target_kpm - current_kpm) / target_kpm) / divider
+			score += GameState.current_mission.progress_mult \
+				* phrase_len * (1.0 - abs(target_kpm - current_kpm) / target_kpm) / divider
 			phrase = []
 			pulse_count = 0
 			
@@ -296,14 +322,30 @@ func reset() -> void:
 	continue_label.visible = false
 	set_hack_progress(0.0)
 	key_times = []
-	interrupt_panel.set_active(true)
+	interrupt_panel.set_active(GameState.current_mission.enable_interrupt)
 	start_time = Time.get_ticks_msec() + 2000.0
+	timer_dial.stop_all_sounds()
+	music_player.stop()
+	tick_time = 0
+	modem_sound_played = false
+	target_kpm = GameState.current_mission.target_kpm
+	target_gap = GameState.current_mission.target_gap
+	time_left = GameState.current_mission.time_limit
+	max_time = time_left
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	print ("Base engine FPS ", Engine.max_fps)
+	Engine.max_fps = 60
+	print ("Base engine FPS is now ", Engine.max_fps)
 	interrupt_panel.missed_ball.connect(_on_missed_ball)
 	mic_bus_idx = AudioServer.get_bus_index("Mic")
 	print("Mic bus index: ", mic_bus_idx)
+	print("Audio input enabled: ", ProjectSettings.get_setting("audio/driver/enable_input"))
+	
+	# trace_panel.visible = GameState.current_mission.trace_enabled
+	voice_label.text = GameState.current_mission.name
+	
 	reset()
 
 func _on_missed_ball() -> void:
@@ -342,8 +384,8 @@ func _process(delta: float) -> void:
 		return
 	
 	var now := Time.get_ticks_msec()
-	
-	if phrase.is_empty() and now > start_time:
+
+	if speech() and phrase.is_empty() and now > start_time:
 		phrase = make_phrase(5,8)
 		phrase_label.text = phrase[0]
 	
@@ -354,6 +396,13 @@ func _process(delta: float) -> void:
 
 	time_left = max(0, time_left - delta)
 	timer_dial.set_time(time_left, max_time, 5.0)
+
+	var new_secs = int(time_left / 5.0)
+	if new_secs != tick_time:
+		play_sfx(tick_sound)
+		tick_time = new_secs
+		if not speech():
+			pulse_count += non_speech_phrase_length
 	
 	if time_left <= 0.0:
 		timer_label.text = "FAIL!!!"
@@ -368,6 +417,10 @@ func _process(delta: float) -> void:
 	else:
 		hack_label.visible = true
 		hacked_blink_time = 0.0
+	
+	if not modem_sound_played:
+		play_sfx(modem_sound)
+		modem_sound_played = true
 	
 func _on_trace_vector_panel_trace_cleared() -> void:
 	trace_clear = true

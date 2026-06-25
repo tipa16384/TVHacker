@@ -4,8 +4,8 @@ signal missed_ball
 
 @onready var pong_player : AudioStreamPlayer = $PongPlayer
 
-var ping_sound = preload("res://ping.wav")
-var pong_sound = preload("res://pong.wav")
+var ping_sound = preload("res://audio/ping.wav")
+var pong_sound = preload("res://audio/pong.wav")
 
 var crt_dark := Color("#001000")
 var crt_dim := Color("#006622")
@@ -16,7 +16,7 @@ var crt_red := Color("#ff2020")
 var ball_pos := Vector2.ZERO
 var ball_vel := Vector2.ZERO
 var ball_radius := 5.0
-var ball_speed := 170.0
+var ball_speed : float = GameState.current_mission.pong_speed
 
 var paddle_x := 0.0
 var paddle_w := 70.0
@@ -135,6 +135,7 @@ func _ready() -> void:
 	set_process(true)
 	reset_ball()
 	paddle_x = size.x * 0.5
+	self.visible = GameState.current_mission.enable_interrupt
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
@@ -143,6 +144,9 @@ func _notification(what: int) -> void:
 			paddle_x = size.x * 0.5
 			
 func _process(delta: float) -> void:
+	if not GameState.current_mission.enable_interrupt:
+		return
+		
 	if active:
 		update_paddle(delta)
 		update_ball(delta)
@@ -150,6 +154,9 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	if not GameState.current_mission.enable_interrupt:
+		return
+		
 	var rect := Rect2(Vector2.ZERO, size)
 
 	draw_rect(rect, crt_dark)

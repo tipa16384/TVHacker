@@ -21,6 +21,15 @@ buses/default_bus_layout="uid://y7hae1hst00y"
 general/text_to_speech=true
 driver/enable_input=true
 
+[autoload]
+
+GameState="*uid://whns5uqoukp4"
+
+[display]
+
+window/size/resizable=false
+window/stretch/mode="viewport"
+
 [input]
 
 screenshot={
