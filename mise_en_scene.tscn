@@ -1,0 +1,98 @@
+[gd_scene format=3 uid="uid://hkj361nbvr22"]
+
+[ext_resource type="Texture2D" uid="uid://pjrhmrworukw" path="res://images/dude-vendingmachine.png" id="1_rl6uk"]
+[ext_resource type="Shader" uid="uid://uxs2pk24ke0" path="res://green_no_noise.gdshader" id="1_v6ato"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_v6ato"]
+shader = ExtResource("1_v6ato")
+
+[node name="MiseEnScene" type="Control" unique_id=1820834809]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RootVBox" type="VBoxContainer" parent="." unique_id=741803250]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HeaderPanel" type="PanelContainer" parent="RootVBox" unique_id=1884434220]
+layout_mode = 2
+
+[node name="HeaderHBox" type="HBoxContainer" parent="RootVBox/HeaderPanel" unique_id=575223703]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="PortraitFrame" type="PanelContainer" parent="RootVBox/HeaderPanel/HeaderHBox" unique_id=1893900746]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="PortraitTextureRect" type="TextureRect" parent="RootVBox/HeaderPanel/HeaderHBox/PortraitFrame" unique_id=889721934]
+material = SubResource("ShaderMaterial_v6ato")
+layout_mode = 2
+texture = ExtResource("1_rl6uk")
+
+[node name="BioVBox" type="VBoxContainer" parent="RootVBox/HeaderPanel/HeaderHBox" unique_id=1023194856]
+layout_mode = 2
+alignment = 1
+
+[node name="MissionTitleLabel" type="Label" parent="RootVBox/HeaderPanel/HeaderHBox/BioVBox" unique_id=1413225782]
+layout_mode = 2
+text = "DARREN FROM ACCOUNTING"
+
+[node name="GiverNameLabel" type="Label" parent="RootVBox/HeaderPanel/HeaderHBox/BioVBox" unique_id=637037375]
+layout_mode = 2
+text = "Unauthorized Beverage Enthusiast"
+
+[node name="GiverRoleLabel" type="Label" parent="RootVBox/HeaderPanel/HeaderHBox/BioVBox" unique_id=61057774]
+layout_mode = 2
+text = "Mission: The Soda Touch"
+
+[node name="MissionMetaLabel" type="Label" parent="RootVBox/HeaderPanel/HeaderHBox/BioVBox" unique_id=1719449259]
+layout_mode = 2
+text = "Target: Break Room Vending Machine"
+
+[node name="TextPanel" type="PanelContainer" parent="RootVBox" unique_id=1746853255]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TextScrollContainer" type="ScrollContainer" parent="RootVBox/TextPanel" unique_id=2104145790]
+clip_contents = false
+layout_mode = 2
+
+[node name="MissionTextLabel" type="RichTextLabel" parent="RootVBox/TextPanel/TextScrollContainer" unique_id=1902435072]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "When last we met, both the Boneshaper and the Banner Spear retired and were replaced by the Crashing Tide and the Trapper, respectively. We gave up a lot of summons, and their tanking and damage, and the tanking, healing and AE damage of the Banner Spear, and in return got… well, still to be determined.
+
+Luckily, we chose for our next scenario to start along the Machine plotline in order that the fourth member of our little band, the Blink Blade, could retire. He just needs to land the killing blow on two robotic boltthrowers, so we’re trying to give him that chance.
+
+This scenario is set in a narrow corridor bounded on both sides by dark, snowy forest. We were chased into this place by baying wolves; we must run until they give up the hunt.
+
+Unfortunately for us, the way isn’t clear. There are polar bears, that must be killed, and snow imps, that really need to be killed. After the first door is opened, wolves appear us to nip at our heals.
+
+The Drifter is the obvious tank, but the Blink Blade’s insane mobility meant he could dash in, do some slicing, and jump out.
+
+The reason this scenario was really great for the Trapper is because they could just keep dropping traps behind the party, weakening or outright killing some of the pursuing wolves; Trapper was also laying down healing and bless traps to help out the party."
+fit_content = true
+
+[node name="FooterHBox" type="HBoxContainer" parent="RootVBox" unique_id=2096014728]
+layout_mode = 2
+
+[node name="MoreLabel" type="Label" parent="RootVBox/FooterHBox" unique_id=151228409]
+layout_mode = 2
+text = "More"
+
+[node name="StartMissionButton" type="Button" parent="RootVBox/FooterHBox" unique_id=915929048]
+layout_mode = 2
+text = "Start Hacking"

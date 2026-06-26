@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="TV Hacker"
-run/main_scene="uid://v1oeu8d5if7k"
+run/main_scene="uid://hkj361nbvr22"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 

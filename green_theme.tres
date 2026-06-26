@@ -1,0 +1,8 @@
+[gd_resource type="Theme" format=3 uid="uid://cysllafgen5eo"]
+
+[ext_resource type="FontFile" uid="uid://dolehten4fwaf" path="res://WhiteRabbit-47pD.ttf" id="1_p1ek5"]
+
+[resource]
+default_font = ExtResource("1_p1ek5")
+default_font_size = 20
+Label/colors/font_color = Color(0, 1, 0.33333334, 1)
